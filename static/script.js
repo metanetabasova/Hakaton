@@ -2,6 +2,10 @@ const timerDisplay = document.getElementById("timer");
 const sessionLabel = document.getElementById("session-label");
 const sessionCount = document.getElementById("session-count");
 const progressBar = document.getElementById("progress-bar");
+const hint = document.getElementById("hint");
+const workInput = document.getElementById("work-duration");
+const shortBreakInput = document.getElementById("short-break-duration");
+const longBreakInput = document.getElementById("long-break-duration");
 const startBtn = document.getElementById("start-btn");
 const resetBtn = document.getElementById("reset-btn");
 const muteBtn = document.getElementById("mute-btn");
@@ -10,11 +14,11 @@ const longBreakBtn = document.getElementById("long-break-btn");
 const alarm = document.getElementById("alarm");
 
 const baseTitle = "Minimalist Pomodoro Timer";
-const focusDuration = 25 * 60;
-const shortBreakDuration = 5 * 60;
-const longBreakDuration = 15 * 60;
 const cyclesUntilLongBreak = 4;
 
+let focusDuration = 25 * 60;
+let shortBreakDuration = 5 * 60;
+let longBreakDuration = 15 * 60;
 let timer = focusDuration;
 let totalDuration = focusDuration;
 let isRunning = false;
@@ -29,6 +33,16 @@ const formatTime = (seconds) => {
   const remainder = String(seconds % 60).padStart(2, "0");
   return `${minutes}:${remainder}`;
 };
+
+const clampMinutes = (value, min, max) => {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed)) {
+    return min;
+  }
+  return Math.min(Math.max(parsed, min), max);
+};
+
+const minutesToSeconds = (minutes) => Math.max(1, minutes) * 60;
 
 const getSessionNumber = () => {
   const completedInCycle = completedFocusSessions % cyclesUntilLongBreak;
@@ -46,6 +60,10 @@ const updateProgress = () => {
   progressBar.style.width = `${percent}%`;
 };
 
+const updateHint = () => {
+  hint.textContent = `${workInput.value} minutes work · ${shortBreakInput.value} minutes short break · ${longBreakInput.value} minutes long break`;
+};
+
 const updateDisplay = () => {
   const sessionText = getSessionLabel();
   timerDisplay.textContent = formatTime(timer);
@@ -56,6 +74,7 @@ const updateDisplay = () => {
   document.body.classList.toggle("work", isFocus);
   document.body.classList.toggle("break", !isFocus);
   updateProgress();
+  updateHint();
 };
 
 const playAlarm = () => {
@@ -64,6 +83,31 @@ const playAlarm = () => {
   }
   alarm.currentTime = 0;
   alarm.play();
+};
+
+const applyDurations = ({ resetTimer = true } = {}) => {
+  const workMinutes = clampMinutes(workInput.value, 1, 120);
+  const shortMinutes = clampMinutes(shortBreakInput.value, 1, 60);
+  const longMinutes = clampMinutes(longBreakInput.value, 1, 90);
+
+  workInput.value = workMinutes;
+  shortBreakInput.value = shortMinutes;
+  longBreakInput.value = longMinutes;
+
+  focusDuration = minutesToSeconds(workMinutes);
+  shortBreakDuration = minutesToSeconds(shortMinutes);
+  longBreakDuration = minutesToSeconds(longMinutes);
+
+  if (resetTimer) {
+    if (isFocus) {
+      totalDuration = focusDuration;
+    } else {
+      totalDuration = currentBreakType === "long" ? longBreakDuration : shortBreakDuration;
+    }
+    timer = totalDuration;
+  }
+
+  updateDisplay();
 };
 
 const handleSessionEnd = () => {
@@ -138,6 +182,10 @@ resetBtn.addEventListener("click", resetTimer);
 muteBtn.addEventListener("click", toggleMute);
 shortBreakBtn.addEventListener("click", () => setBreak(shortBreakDuration, "short"));
 longBreakBtn.addEventListener("click", () => setBreak(longBreakDuration, "long"));
+workInput.addEventListener("input", () => applyDurations());
+shortBreakInput.addEventListener("input", () => applyDurations());
+longBreakInput.addEventListener("input", () => applyDurations());
 
+applyDurations({ resetTimer: false });
 document.title = baseTitle;
 updateDisplay();
