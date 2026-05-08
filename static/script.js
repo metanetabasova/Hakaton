@@ -9,11 +9,13 @@ const alarm = document.getElementById("alarm");
 const focusDuration = 25 * 60;
 const shortBreakDuration = 5 * 60;
 const longBreakDuration = 15 * 60;
+const cyclesUntilLongBreak = 4;
 
 let timer = focusDuration;
 let isRunning = false;
 let isFocus = true;
 let intervalId = null;
+let completedFocusSessions = 0;
 
 const formatTime = (seconds) => {
   const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -26,6 +28,22 @@ const updateDisplay = () => {
   sessionLabel.textContent = isFocus ? "Work" : "Break";
   document.body.classList.toggle("work", isFocus);
   document.body.classList.toggle("break", !isFocus);
+};
+
+const handleSessionEnd = () => {
+  if (isFocus) {
+    completedFocusSessions += 1;
+    const isLongBreak = completedFocusSessions % cyclesUntilLongBreak === 0;
+    timer = isLongBreak ? longBreakDuration : shortBreakDuration;
+    isFocus = false;
+  } else {
+    timer = focusDuration;
+    isFocus = true;
+  }
+
+  alarm.currentTime = 0;
+  alarm.play();
+  updateDisplay();
 };
 
 const startTimer = () => {
@@ -44,11 +62,7 @@ const startTimer = () => {
       timer -= 1;
       updateDisplay();
     } else {
-      isFocus = !isFocus;
-      timer = isFocus ? focusDuration : shortBreakDuration;
-      alarm.currentTime = 0;
-      alarm.play();
-      updateDisplay();
+      handleSessionEnd();
     }
   }, 1000);
 };
@@ -58,6 +72,7 @@ const resetTimer = () => {
   isRunning = false;
   isFocus = true;
   timer = focusDuration;
+  completedFocusSessions = 0;
   startBtn.textContent = "Start";
   updateDisplay();
 };
