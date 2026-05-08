@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimalist Pomodoro Timer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="container">
+    <h1>Minimalist Pomodoro Timer</h1>
+    <p class="session-label" id="session-label">Focus</p>
+
+    <div class="timer" id="timer">25:00</div>
+
+    <div class="controls">
+      <button id="start-btn" class="primary">Start</button>
+      <button id="reset-btn" class="secondary">Reset</button>
+    </div>
+
+    <p class="hint">25 minutes focus · 5 minutes break</p>
+  </main>
+
+  <audio id="alarm" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" type="audio/ogg" />
+    <source src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
