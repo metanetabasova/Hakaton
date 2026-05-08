@@ -2,10 +2,13 @@ const timerDisplay = document.getElementById("timer");
 const sessionLabel = document.getElementById("session-label");
 const startBtn = document.getElementById("start-btn");
 const resetBtn = document.getElementById("reset-btn");
+const shortBreakBtn = document.getElementById("short-break-btn");
+const longBreakBtn = document.getElementById("long-break-btn");
 const alarm = document.getElementById("alarm");
 
 const focusDuration = 25 * 60;
-const breakDuration = 5 * 60;
+const shortBreakDuration = 5 * 60;
+const longBreakDuration = 15 * 60;
 
 let timer = focusDuration;
 let isRunning = false;
@@ -20,15 +23,9 @@ const formatTime = (seconds) => {
 
 const updateDisplay = () => {
   timerDisplay.textContent = formatTime(timer);
-  sessionLabel.textContent = isFocus ? "Focus" : "Break";
-};
-
-const switchSession = () => {
-  isFocus = !isFocus;
-  timer = isFocus ? focusDuration : breakDuration;
-  updateDisplay();
-  alarm.currentTime = 0;
-  alarm.play();
+  sessionLabel.textContent = isFocus ? "Work" : "Break";
+  document.body.classList.toggle("work", isFocus);
+  document.body.classList.toggle("break", !isFocus);
 };
 
 const startTimer = () => {
@@ -47,7 +44,11 @@ const startTimer = () => {
       timer -= 1;
       updateDisplay();
     } else {
-      switchSession();
+      isFocus = !isFocus;
+      timer = isFocus ? focusDuration : shortBreakDuration;
+      alarm.currentTime = 0;
+      alarm.play();
+      updateDisplay();
     }
   }, 1000);
 };
@@ -61,7 +62,18 @@ const resetTimer = () => {
   updateDisplay();
 };
 
+const setBreak = (duration) => {
+  clearInterval(intervalId);
+  isRunning = false;
+  isFocus = false;
+  timer = duration;
+  startBtn.textContent = "Start";
+  updateDisplay();
+};
+
 startBtn.addEventListener("click", startTimer);
 resetBtn.addEventListener("click", resetTimer);
+shortBreakBtn.addEventListener("click", () => setBreak(shortBreakDuration));
+longBreakBtn.addEventListener("click", () => setBreak(longBreakDuration));
 
 updateDisplay();

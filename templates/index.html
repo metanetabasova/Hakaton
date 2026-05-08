@@ -6,10 +6,10 @@
   <title>Minimalist Pomodoro Timer</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
-<body>
+<body class="work">
   <main class="container">
     <h1>Minimalist Pomodoro Timer</h1>
-    <p class="session-label" id="session-label">Focus</p>
+    <p class="session-label" id="session-label">Work</p>
 
     <div class="timer" id="timer">25:00</div>
 
@@ -18,7 +18,12 @@
       <button id="reset-btn" class="secondary">Reset</button>
     </div>
 
-    <p class="hint">25 minutes focus · 5 minutes break</p>
+    <div class="modes">
+      <button id="short-break-btn" class="ghost">Short Break</button>
+      <button id="long-break-btn" class="ghost">Long Break</button>
+    </div>
+
+    <p class="hint">25 minutes work · 5 minutes short break · 15 minutes long break</p>
   </main>
 
   <audio id="alarm" preload="auto">

@@ -12,6 +12,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.3s ease;
+}
+
+body.work {
+  background: #f6f4f2;
+}
+
+body.break {
+  background: #eef5f3;
 }
 
 .container {
@@ -42,11 +51,13 @@ h1 {
   margin-bottom: 28px;
 }
 
-.controls {
+.controls,
+.modes {
   display: flex;
   justify-content: center;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 button {
@@ -71,6 +82,12 @@ button:active {
 .secondary {
   background: #efe9e5;
   color: #2f2f2f;
+}
+
+.ghost {
+  background: #ffffff;
+  color: #2f2f2f;
+  border: 1px solid #d8d2ce;
 }
 
 .hint {
