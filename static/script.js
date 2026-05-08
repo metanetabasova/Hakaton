@@ -3,6 +3,7 @@ const sessionLabel = document.getElementById("session-label");
 const sessionCount = document.getElementById("session-count");
 const progressBar = document.getElementById("progress-bar");
 const celebration = document.getElementById("celebration");
+const completion = document.getElementById("completion");
 const confetti = document.getElementById("confetti");
 const hint = document.getElementById("hint");
 const taskInput = document.getElementById("task-input");
@@ -10,6 +11,13 @@ const taskDisplay = document.getElementById("task-display");
 const workInput = document.getElementById("work-duration");
 const shortBreakInput = document.getElementById("short-break-duration");
 const longBreakInput = document.getElementById("long-break-duration");
+const subjectNameInput = document.getElementById("subject-name");
+const subjectSessionsInput = document.getElementById("subject-sessions");
+const subjectWorkInput = document.getElementById("subject-work");
+const subjectShortInput = document.getElementById("subject-short");
+const subjectLongInput = document.getElementById("subject-long");
+const addSubjectBtn = document.getElementById("add-subject");
+const subjectList = document.getElementById("subject-list");
 const startBtn = document.getElementById("start-btn");
 const resetBtn = document.getElementById("reset-btn");
 const muteBtn = document.getElementById("mute-btn");
@@ -23,6 +31,7 @@ const cyclesUntilLongBreak = 4;
 const storageKey = "pomodoroDurations";
 const taskStorageKey = "pomodoroTask";
 const themeStorageKey = "pomodoroTheme";
+const plannerStorageKey = "pomodoroPlanner";
 
 let focusDuration = 25 * 60;
 let shortBreakDuration = 5 * 60;
@@ -36,6 +45,9 @@ let completedFocusSessions = 0;
 let currentBreakType = "short";
 let isMuted = false;
 let isDarkMode = false;
+let targetSessions = cyclesUntilLongBreak;
+let subjects = [];
+let activeSubjectId = null;
 
 const formatTime = (seconds) => {
   const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -51,14 +63,13 @@ const clampMinutes = (value, min, max) => {
   return Math.min(Math.max(parsed, min), max);
 };
 
+const clampSessions = (value) => clampMinutes(value, 1, 12);
+
 const minutesToSeconds = (minutes) => Math.max(1, minutes) * 60;
 
 const getSessionNumber = () => {
-  const completedInCycle = completedFocusSessions % cyclesUntilLongBreak;
-  if (isFocus) {
-    return completedInCycle + 1;
-  }
-  return completedInCycle === 0 ? cyclesUntilLongBreak : completedInCycle;
+  const nextSession = isFocus ? completedFocusSessions + 1 : completedFocusSessions;
+  return Math.min(nextSession, targetSessions);
 };
 
 const getSessionLabel = () =>
@@ -82,7 +93,7 @@ const updateDisplay = () => {
   const sessionText = getSessionLabel();
   timerDisplay.textContent = formatTime(timer);
   sessionLabel.textContent = sessionText;
-  sessionCount.textContent = `Session ${getSessionNumber()} of ${cyclesUntilLongBreak}`;
+  sessionCount.textContent = `Session ${getSessionNumber()} of ${targetSessions}`;
   muteBtn.textContent = isMuted ? "Unmute" : "Mute";
   document.title = `${formatTime(timer)} · ${sessionText}`;
   document.body.classList.toggle("work", isFocus);
@@ -128,6 +139,13 @@ const triggerCelebration = () => {
   }, 2000);
 };
 
+const triggerCompletion = () => {
+  completion.classList.add("show");
+  setTimeout(() => {
+    completion.classList.remove("show");
+  }, 2800);
+};
+
 const saveDurations = (workMinutes, shortMinutes, longMinutes) => {
   localStorage.setItem(
     storageKey,
@@ -149,6 +167,21 @@ const loadDurations = () => {
     }
     if (stored.longMinutes) {
       longBreakInput.value = stored.longMinutes;
+    }
+  } catch {
+    // Ignore malformed stored data.
+  }
+};
+
+const savePlanner = () => {
+  localStorage.setItem(plannerStorageKey, JSON.stringify(subjects));
+};
+
+const loadPlanner = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(plannerStorageKey));
+    if (Array.isArray(stored)) {
+      subjects = stored;
     }
   } catch {
     // Ignore malformed stored data.
@@ -205,10 +238,93 @@ const applyDurations = ({ resetTimer = true } = {}) => {
   updateDisplay();
 };
 
+const setActiveSubject = (subjectId) => {
+  activeSubjectId = subjectId;
+  subjectList.querySelectorAll(".subject-item").forEach((item) => {
+    item.classList.toggle("active", item.dataset.id === subjectId);
+  });
+};
+
+const applySubject = (subject) => {
+  workInput.value = subject.workMinutes;
+  shortBreakInput.value = subject.shortMinutes;
+  longBreakInput.value = subject.longMinutes;
+  targetSessions = subject.sessions;
+  completedFocusSessions = 0;
+  isFocus = true;
+  currentBreakType = "short";
+  applyDurations();
+};
+
+const renderSubjects = () => {
+  subjectList.innerHTML = "";
+  subjects.forEach((subject) => {
+    const item = document.createElement("li");
+    item.classList.add("subject-item");
+    item.dataset.id = subject.id;
+    item.innerHTML = `
+      <strong>${subject.name}</strong>
+      <span class="subject-meta">${subject.sessions} sessions · ${subject.workMinutes} / ${subject.shortMinutes} / ${subject.longMinutes} min</span>
+    `;
+    item.addEventListener("click", () => {
+      setActiveSubject(subject.id);
+      applySubject(subject);
+    });
+    subjectList.appendChild(item);
+  });
+  if (activeSubjectId) {
+    setActiveSubject(activeSubjectId);
+  }
+};
+
+const addSubject = () => {
+  const name = subjectNameInput.value.trim();
+  if (!name) {
+    subjectNameInput.focus();
+    return;
+  }
+
+  const sessions = clampSessions(subjectSessionsInput.value);
+  const workMinutes = clampMinutes(subjectWorkInput.value, 1, 120);
+  const shortMinutes = clampMinutes(subjectShortInput.value, 1, 60);
+  const longMinutes = clampMinutes(subjectLongInput.value, 1, 90);
+
+  subjectSessionsInput.value = sessions;
+  subjectWorkInput.value = workMinutes;
+  subjectShortInput.value = shortMinutes;
+  subjectLongInput.value = longMinutes;
+
+  const subject = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name,
+    sessions,
+    workMinutes,
+    shortMinutes,
+    longMinutes,
+  };
+
+  subjects.unshift(subject);
+  savePlanner();
+  renderSubjects();
+  setActiveSubject(subject.id);
+  applySubject(subject);
+  subjectNameInput.value = "";
+};
+
 const handleSessionEnd = () => {
   if (isFocus) {
     completedFocusSessions += 1;
     triggerCelebration();
+
+    if (completedFocusSessions >= targetSessions) {
+      clearInterval(intervalId);
+      isRunning = false;
+      startBtn.textContent = "Start";
+      triggerCompletion();
+      updateDisplay();
+      return;
+    }
+
     const isLongBreak = completedFocusSessions % cyclesUntilLongBreak === 0;
     currentBreakType = isLongBreak ? "long" : "short";
     totalDuration = isLongBreak ? longBreakDuration : shortBreakDuration;
@@ -287,11 +403,15 @@ longBreakBtn.addEventListener("click", () => setBreak(longBreakDuration, "long")
 workInput.addEventListener("input", () => applyDurations());
 shortBreakInput.addEventListener("input", () => applyDurations());
 longBreakInput.addEventListener("input", () => applyDurations());
+addSubjectBtn.addEventListener("click", addSubject);
+
 taskInput.addEventListener("input", () => {
   saveTask(taskInput.value.trim());
   updateDisplay();
 });
 
+loadPlanner();
+renderSubjects();
 loadDurations();
 loadTask();
 loadTheme();

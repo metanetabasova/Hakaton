@@ -16,48 +16,93 @@
     <div class="celebration-card">Nice work! 🎉</div>
   </div>
 
-  <main class="container">
-    <h1>Minimalist Pomodoro Timer</h1>
-    <p class="session-label" id="session-label">Work Time</p>
-    <p class="session-count" id="session-count">Session 1 of 4</p>
-
-    <div class="timer" id="timer">25:00</div>
-
-    <div class="task">
-      <label for="task-input">Current Task</label>
-      <input id="task-input" type="text" maxlength="80" placeholder="e.g., Draft the project plan" />
-      <p class="task-display" id="task-display">Current Task: —</p>
+  <div class="celebration completion" id="completion" aria-hidden="true">
+    <div class="celebration-card completion-card">
+      Congratulations! You have successfully completed your study plan for today!
     </div>
+  </div>
 
-    <div class="controls">
-      <button id="start-btn" class="primary">Start</button>
-      <button id="reset-btn" class="secondary">Reset</button>
-      <button id="mute-btn" class="ghost">Mute</button>
-      <button id="theme-toggle" class="ghost">Dark Mode</button>
-    </div>
-
-    <div class="modes">
-      <button id="short-break-btn" class="ghost">Short Break</button>
-      <button id="long-break-btn" class="ghost">Long Break</button>
-    </div>
-
-    <div class="settings">
-      <div class="settings-field">
-        <label for="work-duration">Work (min)</label>
-        <input id="work-duration" type="number" min="1" max="120" value="25" />
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Daily Study Planner</h2>
+        <p>Build your focused study sessions.</p>
       </div>
-      <div class="settings-field">
-        <label for="short-break-duration">Short Break (min)</label>
-        <input id="short-break-duration" type="number" min="1" max="60" value="5" />
-      </div>
-      <div class="settings-field">
-        <label for="long-break-duration">Long Break (min)</label>
-        <input id="long-break-duration" type="number" min="1" max="90" value="15" />
-      </div>
-    </div>
 
-    <p class="hint" id="hint">25 minutes work · 5 minutes short break · 15 minutes long break</p>
-  </main>
+      <div class="planner-form">
+        <label for="subject-name">Subject Name</label>
+        <input id="subject-name" type="text" maxlength="40" placeholder="e.g., Calculus" />
+
+        <label for="subject-sessions">Number of Sessions</label>
+        <input id="subject-sessions" type="number" min="1" max="12" value="4" />
+
+        <div class="planner-durations">
+          <div>
+            <label for="subject-work">Work</label>
+            <input id="subject-work" type="number" min="1" max="120" value="25" />
+          </div>
+          <div>
+            <label for="subject-short">Short Break</label>
+            <input id="subject-short" type="number" min="1" max="60" value="5" />
+          </div>
+          <div>
+            <label for="subject-long">Long Break</label>
+            <input id="subject-long" type="number" min="1" max="90" value="15" />
+          </div>
+        </div>
+
+        <button id="add-subject" class="primary" type="button">+ Add Subject</button>
+      </div>
+
+      <div class="planner-list">
+        <h3>Today’s Subjects</h3>
+        <ul id="subject-list"></ul>
+      </div>
+    </aside>
+
+    <main class="container">
+      <h1>Minimalist Pomodoro Timer</h1>
+      <p class="session-label" id="session-label">Work Time</p>
+      <p class="session-count" id="session-count">Session 1 of 4</p>
+
+      <div class="timer" id="timer">25:00</div>
+
+      <div class="task">
+        <label for="task-input">Current Task</label>
+        <input id="task-input" type="text" maxlength="80" placeholder="e.g., Draft the project plan" />
+        <p class="task-display" id="task-display">Current Task: —</p>
+      </div>
+
+      <div class="controls">
+        <button id="start-btn" class="primary">Start</button>
+        <button id="reset-btn" class="secondary">Reset</button>
+        <button id="mute-btn" class="ghost">Mute</button>
+        <button id="theme-toggle" class="ghost">Dark Mode</button>
+      </div>
+
+      <div class="modes">
+        <button id="short-break-btn" class="ghost">Short Break</button>
+        <button id="long-break-btn" class="ghost">Long Break</button>
+      </div>
+
+      <div class="settings">
+        <div class="settings-field">
+          <label for="work-duration">Work (min)</label>
+          <input id="work-duration" type="number" min="1" max="120" value="25" />
+        </div>
+        <div class="settings-field">
+          <label for="short-break-duration">Short Break (min)</label>
+          <input id="short-break-duration" type="number" min="1" max="60" value="5" />
+        </div>
+        <div class="settings-field">
+          <label for="long-break-duration">Long Break (min)</label>
+          <input id="long-break-duration" type="number" min="1" max="90" value="15" />
+        </div>
+      </div>
+
+      <p class="hint" id="hint">25 minutes work · 5 minutes short break · 15 minutes long break</p>
+    </main>
+  </div>
 
   <audio id="alarm" preload="auto">
     <source src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" type="audio/ogg" />
