@@ -2,13 +2,18 @@ const timerDisplay = document.getElementById("timer");
 const sessionLabel = document.getElementById("session-label");
 const sessionCount = document.getElementById("session-count");
 const progressBar = document.getElementById("progress-bar");
+const celebration = document.getElementById("celebration");
+const confetti = document.getElementById("confetti");
 const hint = document.getElementById("hint");
+const taskInput = document.getElementById("task-input");
+const taskDisplay = document.getElementById("task-display");
 const workInput = document.getElementById("work-duration");
 const shortBreakInput = document.getElementById("short-break-duration");
 const longBreakInput = document.getElementById("long-break-duration");
 const startBtn = document.getElementById("start-btn");
 const resetBtn = document.getElementById("reset-btn");
 const muteBtn = document.getElementById("mute-btn");
+const themeToggle = document.getElementById("theme-toggle");
 const shortBreakBtn = document.getElementById("short-break-btn");
 const longBreakBtn = document.getElementById("long-break-btn");
 const alarm = document.getElementById("alarm");
@@ -16,6 +21,8 @@ const alarm = document.getElementById("alarm");
 const baseTitle = "Minimalist Pomodoro Timer";
 const cyclesUntilLongBreak = 4;
 const storageKey = "pomodoroDurations";
+const taskStorageKey = "pomodoroTask";
+const themeStorageKey = "pomodoroTheme";
 
 let focusDuration = 25 * 60;
 let shortBreakDuration = 5 * 60;
@@ -28,6 +35,7 @@ let intervalId = null;
 let completedFocusSessions = 0;
 let currentBreakType = "short";
 let isMuted = false;
+let isDarkMode = false;
 
 const formatTime = (seconds) => {
   const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -65,6 +73,11 @@ const updateHint = () => {
   hint.textContent = `${workInput.value} minutes work · ${shortBreakInput.value} minutes short break · ${longBreakInput.value} minutes long break`;
 };
 
+const updateTaskDisplay = () => {
+  const task = taskInput.value.trim();
+  taskDisplay.textContent = task ? `Current Task: ${task}` : "Current Task: —";
+};
+
 const updateDisplay = () => {
   const sessionText = getSessionLabel();
   timerDisplay.textContent = formatTime(timer);
@@ -76,6 +89,7 @@ const updateDisplay = () => {
   document.body.classList.toggle("break", !isFocus);
   updateProgress();
   updateHint();
+  updateTaskDisplay();
 };
 
 const playAlarm = () => {
@@ -84,6 +98,34 @@ const playAlarm = () => {
   }
   alarm.currentTime = 0;
   alarm.play();
+};
+
+const createConfetti = () => {
+  confetti.innerHTML = "";
+  const colors = ["#f5a623", "#50e3c2", "#9013fe", "#f8e71c", "#4a90e2"];
+
+  for (let i = 0; i < 26; i += 1) {
+    const piece = document.createElement("div");
+    piece.classList.add("confetti-piece");
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = `${Math.random() * 0.3}s`;
+    piece.style.animationDuration = `${1.6 + Math.random()}s`;
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    confetti.appendChild(piece);
+  }
+
+  setTimeout(() => {
+    confetti.innerHTML = "";
+  }, 2300);
+};
+
+const triggerCelebration = () => {
+  celebration.classList.add("show");
+  createConfetti();
+  setTimeout(() => {
+    celebration.classList.remove("show");
+  }, 2000);
 };
 
 const saveDurations = (workMinutes, shortMinutes, longMinutes) => {
@@ -110,6 +152,30 @@ const loadDurations = () => {
     }
   } catch {
     // Ignore malformed stored data.
+  }
+};
+
+const saveTask = (task) => {
+  localStorage.setItem(taskStorageKey, task);
+};
+
+const loadTask = () => {
+  const storedTask = localStorage.getItem(taskStorageKey);
+  if (storedTask) {
+    taskInput.value = storedTask;
+  }
+};
+
+const applyTheme = () => {
+  document.body.classList.toggle("dark", isDarkMode);
+  themeToggle.textContent = isDarkMode ? "Light Mode" : "Dark Mode";
+  localStorage.setItem(themeStorageKey, isDarkMode ? "dark" : "light");
+};
+
+const loadTheme = () => {
+  const storedTheme = localStorage.getItem(themeStorageKey);
+  if (storedTheme === "dark") {
+    isDarkMode = true;
   }
 };
 
@@ -142,6 +208,7 @@ const applyDurations = ({ resetTimer = true } = {}) => {
 const handleSessionEnd = () => {
   if (isFocus) {
     completedFocusSessions += 1;
+    triggerCelebration();
     const isLongBreak = completedFocusSessions % cyclesUntilLongBreak === 0;
     currentBreakType = isLongBreak ? "long" : "short";
     totalDuration = isLongBreak ? longBreakDuration : shortBreakDuration;
@@ -206,16 +273,29 @@ const toggleMute = () => {
   updateDisplay();
 };
 
+const toggleTheme = () => {
+  isDarkMode = !isDarkMode;
+  applyTheme();
+};
+
 startBtn.addEventListener("click", startTimer);
 resetBtn.addEventListener("click", resetTimer);
 muteBtn.addEventListener("click", toggleMute);
+themeToggle.addEventListener("click", toggleTheme);
 shortBreakBtn.addEventListener("click", () => setBreak(shortBreakDuration, "short"));
 longBreakBtn.addEventListener("click", () => setBreak(longBreakDuration, "long"));
 workInput.addEventListener("input", () => applyDurations());
 shortBreakInput.addEventListener("input", () => applyDurations());
 longBreakInput.addEventListener("input", () => applyDurations());
+taskInput.addEventListener("input", () => {
+  saveTask(taskInput.value.trim());
+  updateDisplay();
+});
 
 loadDurations();
+loadTask();
+loadTheme();
 applyDurations({ resetTimer: false });
+applyTheme();
 document.title = baseTitle;
 updateDisplay();

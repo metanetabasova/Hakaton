@@ -11,6 +11,11 @@
     <div class="progress-bar" id="progress-bar"></div>
   </div>
 
+  <div class="celebration" id="celebration" aria-hidden="true">
+    <div class="confetti" id="confetti"></div>
+    <div class="celebration-card">Nice work! 🎉</div>
+  </div>
+
   <main class="container">
     <h1>Minimalist Pomodoro Timer</h1>
     <p class="session-label" id="session-label">Work Time</p>
@@ -18,10 +23,17 @@
 
     <div class="timer" id="timer">25:00</div>
 
+    <div class="task">
+      <label for="task-input">Current Task</label>
+      <input id="task-input" type="text" maxlength="80" placeholder="e.g., Draft the project plan" />
+      <p class="task-display" id="task-display">Current Task: —</p>
+    </div>
+
     <div class="controls">
       <button id="start-btn" class="primary">Start</button>
       <button id="reset-btn" class="secondary">Reset</button>
       <button id="mute-btn" class="ghost">Mute</button>
+      <button id="theme-toggle" class="ghost">Dark Mode</button>
     </div>
 
     <div class="modes">
