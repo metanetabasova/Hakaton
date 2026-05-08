@@ -15,6 +15,7 @@ const alarm = document.getElementById("alarm");
 
 const baseTitle = "Minimalist Pomodoro Timer";
 const cyclesUntilLongBreak = 4;
+const storageKey = "pomodoroDurations";
 
 let focusDuration = 25 * 60;
 let shortBreakDuration = 5 * 60;
@@ -85,6 +86,33 @@ const playAlarm = () => {
   alarm.play();
 };
 
+const saveDurations = (workMinutes, shortMinutes, longMinutes) => {
+  localStorage.setItem(
+    storageKey,
+    JSON.stringify({ workMinutes, shortMinutes, longMinutes })
+  );
+};
+
+const loadDurations = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(storageKey));
+    if (!stored) {
+      return;
+    }
+    if (stored.workMinutes) {
+      workInput.value = stored.workMinutes;
+    }
+    if (stored.shortMinutes) {
+      shortBreakInput.value = stored.shortMinutes;
+    }
+    if (stored.longMinutes) {
+      longBreakInput.value = stored.longMinutes;
+    }
+  } catch {
+    // Ignore malformed stored data.
+  }
+};
+
 const applyDurations = ({ resetTimer = true } = {}) => {
   const workMinutes = clampMinutes(workInput.value, 1, 120);
   const shortMinutes = clampMinutes(shortBreakInput.value, 1, 60);
@@ -107,6 +135,7 @@ const applyDurations = ({ resetTimer = true } = {}) => {
     timer = totalDuration;
   }
 
+  saveDurations(workMinutes, shortMinutes, longMinutes);
   updateDisplay();
 };
 
@@ -186,6 +215,7 @@ workInput.addEventListener("input", () => applyDurations());
 shortBreakInput.addEventListener("input", () => applyDurations());
 longBreakInput.addEventListener("input", () => applyDurations());
 
+loadDurations();
 applyDurations({ resetTimer: false });
 document.title = baseTitle;
 updateDisplay();
