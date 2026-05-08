@@ -1,6 +1,7 @@
 const timerDisplay = document.getElementById("timer");
 const sessionLabel = document.getElementById("session-label");
 const sessionCount = document.getElementById("session-count");
+const progressBar = document.getElementById("progress-bar");
 const startBtn = document.getElementById("start-btn");
 const resetBtn = document.getElementById("reset-btn");
 const muteBtn = document.getElementById("mute-btn");
@@ -15,6 +16,7 @@ const longBreakDuration = 15 * 60;
 const cyclesUntilLongBreak = 4;
 
 let timer = focusDuration;
+let totalDuration = focusDuration;
 let isRunning = false;
 let isFocus = true;
 let intervalId = null;
@@ -39,6 +41,11 @@ const getSessionNumber = () => {
 const getSessionLabel = () =>
   isFocus ? "Work Time" : currentBreakType === "long" ? "Long Break" : "Short Break";
 
+const updateProgress = () => {
+  const percent = Math.max(0, Math.min(100, (timer / totalDuration) * 100));
+  progressBar.style.width = `${percent}%`;
+};
+
 const updateDisplay = () => {
   const sessionText = getSessionLabel();
   timerDisplay.textContent = formatTime(timer);
@@ -48,6 +55,7 @@ const updateDisplay = () => {
   document.title = `${formatTime(timer)} · ${sessionText}`;
   document.body.classList.toggle("work", isFocus);
   document.body.classList.toggle("break", !isFocus);
+  updateProgress();
 };
 
 const playAlarm = () => {
@@ -63,10 +71,12 @@ const handleSessionEnd = () => {
     completedFocusSessions += 1;
     const isLongBreak = completedFocusSessions % cyclesUntilLongBreak === 0;
     currentBreakType = isLongBreak ? "long" : "short";
-    timer = isLongBreak ? longBreakDuration : shortBreakDuration;
+    totalDuration = isLongBreak ? longBreakDuration : shortBreakDuration;
+    timer = totalDuration;
     isFocus = false;
   } else {
-    timer = focusDuration;
+    totalDuration = focusDuration;
+    timer = totalDuration;
     isFocus = true;
   }
 
@@ -99,7 +109,8 @@ const resetTimer = () => {
   clearInterval(intervalId);
   isRunning = false;
   isFocus = true;
-  timer = focusDuration;
+  totalDuration = focusDuration;
+  timer = totalDuration;
   completedFocusSessions = 0;
   currentBreakType = "short";
   startBtn.textContent = "Start";
@@ -111,7 +122,8 @@ const setBreak = (duration, breakType) => {
   isRunning = false;
   isFocus = false;
   currentBreakType = breakType;
-  timer = duration;
+  totalDuration = duration;
+  timer = totalDuration;
   startBtn.textContent = "Start";
   updateDisplay();
 };
